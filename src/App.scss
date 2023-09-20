@@ -1,0 +1,173 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+*:before,*:after{
+  position: absolute;
+  content:'';
+}
+
+*{
+  margin:0;
+  padding:0;
+}
+
+.board{
+  margin-top: 25px;
+  background:#eac194;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  grid-gap: 0px;
+  
+  label:nth-child(-n+15){
+    .label{
+      &:before{
+        height:50%;
+        bottom:0;
+      }
+    }
+  }
+  label:nth-child(60n+49),
+  label:nth-child(60n+53),
+  label:nth-child(60n+57)
+  {
+    .child:not(.active-black,.active-white):after{
+        background:black;
+        border-radius: 100%;
+        width:5px;
+        height:5px;
+    }
+  }
+  label:nth-last-child(-n+15){
+    .label{
+      &:before{
+        height:50%;
+        top:0;
+      }
+    }
+  }
+  label:nth-last-child(15n+1){
+    .label{
+      &:after{
+        width:50%;
+        left:0;
+      }
+    }
+  }
+  label:nth-last-child(15n-0){
+    .label{
+      &:after{
+        width:50%;
+        right:0;
+      }
+    }
+  }
+  
+  label:nth-child(1),
+  label:nth-child(15),
+  label:nth-child(225),
+  label:nth-child(211){
+    .label{
+      &:after{
+        width:52%;
+      }
+    }
+  }
+  label:nth-child(1),
+  label:nth-child(211){
+    .label{
+      &:after{
+        right:0;
+      }
+    }
+  }
+  label:nth-child(15),
+  label:nth-child(225){
+    .label{
+      &:after{
+        left:0;
+      }
+    }
+  }
+  label{
+    width:25px;
+    height:25px;
+    display: flex;
+    .label{
+      width:100%;
+      height:100%;
+      display: grid;
+      place-items: center;
+      position: relative;
+      border-radius: 50%;
+      &:hover{
+        background: var(--color);
+        opacity: 30%;
+      }
+      .child{
+        width:calc(100% - 5px);
+        height:calc(100% - 5px);
+        border-radius: 100%;
+        display: grid;
+        place-items: center;
+        z-index: 1;
+      }
+      .active-white{
+        background: radial-gradient(circle at 35% 35%, white 0%, rgb(175, 175, 175));
+        box-shadow: 1.5px 2px rgba(0, 0, 0, 0.183);
+      }
+      .active-black{
+        background: radial-gradient(circle at 35% 35%, white -100%, rgb(35, 35, 35));
+        box-shadow: 1.5px 2px rgba(0, 0, 0, 0.183);
+      }
+      &:before{
+        width: .5px;
+        height: 100%;
+        background:black;
+      }
+      &:after{
+        width: 100%;
+        height: .5px;
+        background:black;
+      }
+    }
+    input{
+      width:10px;
+      height:10px;
+      display: none;
+    }
+  }
+}
+.last-section{
+  display: flex;
+  margin-top: 25px;
+  gap: 25px;
+  button{
+    height:35px;
+    width:35px;
+    display: grid;
+    place-items: center;
+    background-color: white !important;
+    position: relative;
+    img{
+      position: absolute;
+      height: 85%;
+      width: 85%;
+    }
+    transition: .25s;
+    &:active{
+      transform: scale(.85,.85);
+    }
+  }
+  p{
+    text-transform: capitalize;
+  }
+}
+
+.no-click{
+  pointer-events: none;
+}
