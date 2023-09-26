@@ -3,6 +3,8 @@ import ResetIcon from '../assets/reset.svg'
 
 function Board() {
 
+    const boardRC = 15
+    const boardBy = boardRC * boardRC
     const [turn, setTurn] = useState(false)
     const [placements, setPlacements] = useState<any[]>([])
     const [gameStatus, setGameStatus] = useState<null | string>(null)
@@ -13,72 +15,67 @@ function Board() {
         return list.find(item => parseInt(item.split('.')[0]) === value)
     }
 
+    const findNext = (value:number, find:string, list:any[], placements: number[]) => {
+        var matrix = []
+        for (var i = 1; i < 5; i++) {
+            var findValue = 0;
+            switch(find){
+                case 't':
+                    findValue = value + (boardRC * i)
+                    break;
+                case 'b':
+                    findValue = value - (boardRC * i)
+                    break;
+                case 'r':
+                    findValue = value - i
+                    break;
+                case 'l':
+                    findValue = value + i
+                    break;
+                case 'dtl':
+                    findValue = value - (boardRC * i) - i
+                    break;
+                case 'dbr':
+                    findValue = value + (boardRC * i) + i
+                    break;
+                case 'dbl':
+                    findValue = value + (boardRC * i) - i
+                    break;
+                case 'dtr':
+                    findValue = value - (boardRC * i) + i
+                    break;
+                default:
+                    break;
+            }
+            findValue = Math.abs(findValue)
+            const matrixClone = [...matrix.map(item=>parseInt(item.replace(/[rg.]/g, ''))), findValue, value]
+            const hasMostLeft = matrixClone.some(ix=>ix%boardRC===0)
+            const hasMostRight = matrixClone.some(ix=>ix%boardRC===boardRC-1)
+            const walled = hasMostLeft && hasMostRight
+            const finder = ArrayFinder(list, findValue)
+            if (!finder || !placements.includes(finder) || walled) 
+                break;
+            matrix.push(finder)
+        }
+        return matrix
+    }
+
     const findWin = (list: any[], i: number) => {
+
         const playerPlacement = turn ?
             list.filter(item => item.includes('.g')) :
             list.filter(item => item.includes('.r'))
 
         const findNumClr = ArrayFinder(list, i)
-        var matrixFinderH = [findNumClr]
-        var matrixFinderV = [findNumClr]
-        var matrixFinderULRD = [findNumClr]
-        var matrixFinderDLRU = [findNumClr]
-        var endReadVDown = false
-        var endReadVUp = false
-        var endReadHLeft = false
-        var endReadHRight = false
-        var endReadDULeft = false
-        var endReadDDRight = false
-        var endReadDDLeft = false
-        var endReadDURight = false
+        var matrixFinderH = [findNumClr, ...findNext(i,'r',list,playerPlacement), ...findNext(i,'l',list,playerPlacement)]
+        var matrixFinderV = [findNumClr, ...findNext(i,'t',list,playerPlacement), ...findNext(i,'b',list,playerPlacement)]
+        var matrixFinderULRD = [findNumClr, ...findNext(i,'dtl',list,playerPlacement), ...findNext(i,'dbr',list,playerPlacement)]
+        var matrixFinderDLRU = [findNumClr, ...findNext(i,'dbl',list,playerPlacement), ...findNext(i,'dtr',list,playerPlacement)]
 
-        for (var j = 1; j < 5; j++) {
-            const incV = (15 * j) + i
-            const decV = Math.abs((15 * j) - i)
-            const incH = j + i
-            const decH = Math.abs(j - i)
-            const incDUL = ((15 * j) + i) + j
-            const decDDR = (Math.abs((15 * j) - i)) - j
-            const incDDL = ((15 * j) + i) - j
-            const decDUR = (Math.abs((15 * j) - i)) + j
-
-            const findDown = ArrayFinder(list, incV)
-            const findUp = ArrayFinder(list, decV)
-            if (!findDown || !playerPlacement.includes(findDown)) endReadVDown = true
-            if (!findUp || !playerPlacement.includes(findUp)) endReadVUp = true
-            if (findDown && !endReadVDown) matrixFinderV.push(findDown)
-            if (findUp && !endReadVUp) matrixFinderV.push(findUp)
-
-            const findLeft = ArrayFinder(list, incH)
-            const findRight = ArrayFinder(list, decH)
-            if (!findLeft || !playerPlacement.includes(findLeft)) endReadHLeft = true
-            if (!findRight || !playerPlacement.includes(findRight)) endReadHRight = true
-            if (findLeft && !endReadHLeft) matrixFinderH.push(findLeft)
-            if (findRight && !endReadHRight) matrixFinderH.push(findRight)
-
-            const findDiaUpLeft = ArrayFinder(list, incDUL)
-            const findDiaDownRight = ArrayFinder(list, decDDR)
-            if (!findDiaUpLeft || !playerPlacement.includes(findDiaUpLeft)) endReadDULeft = true
-            if (!findDiaDownRight || !playerPlacement.includes(findDiaDownRight)) endReadDDRight = true
-            if (findDiaUpLeft && !endReadDULeft) matrixFinderULRD.push(findDiaUpLeft)
-            if (findDiaDownRight && !endReadDDRight) matrixFinderULRD.push(findDiaDownRight)
-
-            const findDiaDownLeft = ArrayFinder(list, incDDL)
-            const findDiaUpRight = ArrayFinder(list, decDUR)
-            if (!findDiaDownLeft || !playerPlacement.includes(findDiaDownLeft)) endReadDDLeft = true
-            if (!findDiaUpRight || !playerPlacement.includes(findDiaUpRight)) endReadDURight = true
-            if (findDiaDownLeft && !endReadDDLeft) matrixFinderDLRU.push(findDiaDownLeft)
-            if (findDiaUpRight && !endReadDURight) matrixFinderDLRU.push(findDiaUpRight)
-        }
-        const remDupeV = [...new Set(matrixFinderV)]
-        const remDupeH = [...new Set(matrixFinderH)]
-        const remDupeULRD = [...new Set(matrixFinderULRD)]
-        const remDupeDLRU = [...new Set(matrixFinderDLRU)]
-
-        const findFive = [remDupeV, remDupeH, remDupeULRD, remDupeDLRU].filter(item => item.length > 4)
-        if (findFive.length) setGameStatus(turn ? p1Clr : p2Clr)
+        const findFive = [matrixFinderH, matrixFinderV, matrixFinderULRD, matrixFinderDLRU]
+            .some(item => item.length > 4)
+        if (findFive) setGameStatus(turn ? p1Clr : p2Clr)
         else setGameStatus(null)
-
     }
 
     const handleClick = (e: any, i: number) => {
@@ -115,7 +112,7 @@ function Board() {
         <>
             <div className='board' style={{pointerEvents: gameStatus ? 'none':'fill'}}>
                 {
-                    new Array(225).fill(0).map((_, i) => {
+                    new Array(boardBy).fill(0).map((_, i) => {
                         return (
                             <label key={i} >
                                 <input type='checkbox' className="checkbox" onChange={(e) => handleClick(e, i)} />
